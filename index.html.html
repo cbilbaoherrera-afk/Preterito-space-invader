@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invasores del Pretérito</title>
+    <!-- Phaser 3 desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050510;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        #game-container {
+            box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container"></div>
+
+<script>
+// --- BANCO COMPLETO DE PREGUNTAS EN PRETÉRITO (62 PREGUNTAS) ---
+const bancoPreguntas = [
+    // Preguntas iniciales
+    { oracion: "Ayer yo ________ (hablar) con el profesor.", opciones: ["hablé", "hablo", "habló", "hablaban"], correcta: "hablé" },
+    { oracion: "Anoche nosotros ________ (comer) pizza.", opciones: ["comimos", "comemos", "comieron", "comisteis"], correcta: "comimos" },
+    { oracion: "Ellos ________ (escribir) una carta la semana pasada.", opciones: ["escribieron", "escriben", "escribió", "escribiste"], correcta: "escribieron" },
+    { oracion: "Tú ________ (estudiar) mucho para el examen.", opciones: ["estudiaste", "estudias", "estudió", "estudiaron"], correcta: "estudiaste" },
+    { oracion: "El año pasado ella ________ (viajar) a España.", opciones: ["viajó", "viaja", "viajaron", "viajé"], correcta: "viajó" },
+    { oracion: "Ayer María ________ (ir) al supermercado.", opciones: ["fue", "iba", "va", "fui"], correcta: "fue" },
+    { oracion: "Nosotros ________ (tener) una prueba el lunes.", opciones: ["tuvimos", "tenemos", "tuvisteis", "tuvieron"], correcta: "tuvimos" },
+    { oracion: "Yo ________ (hacer) toda la tarea anoche.", opciones: ["hice", "hago", "hizo", "hicieron"], correcta: "hice" },
+    { oracion: "Ellos no ________ (poder) asistir a la reunión.", opciones: ["pudieron", "pueden", "podían", "pudo"], correcta: "pudieron" },
+    { oracion: "Tú me ________ (decir) la verdad la semana pasada.", opciones: ["dijiste", "dices", "dijeron", "dijo"], correcta: "dijiste" },
+    { oracion: "Mis amigos ________ (estar) en el parque ayer.", opciones: ["estuvieron", "están", "estuvo", "estaban"], correcta: "estuvieron" },
+    { oracion: "El perro ________ (venir) cuando lo llamé.", opciones: ["vino", "viene", "vinieron", "venía"], correcta: "vino" },
+
+    // Verbos Regulares
+    { oracion: "Anoche yo ________ (bailar) en la fiesta de cumpleaños.", opciones: ["bailé", "bailo", "bailó", "bailaba"], correcta: "bailé" },
+    { oracion: "Mis primos ________ (visitar) el museo el domingo.", opciones: ["visitaron", "visitan", "visitó", "visitar"], correcta: "visitaron" },
+    { oracion: "Tú ________ (limpiar) la cocina después de cenar.", opciones: ["limpiaste", "limpias", "limpiaron", "limpió"], correcta: "limpiaste" },
+    { oracion: "El profesor ________ (explicar) la lección muy bien.", opciones: ["explicó", "explica", "explicaron", "explique"], correcta: "explicó" },
+    { oracion: "Nosotros ________ (ganar) el partido de fútbol.", opciones: ["ganamos", "ganaron", "ganó", "ganas"], correcta: "ganamos" },
+    { oracion: "Ella ________ (vender) su auto viejo el mes pasado.", opciones: ["vendió", "vende", "vendieron", "vendí"], correcta: "vendió" },
+    { oracion: "Yo ________ (aprender) mucho en la clase de español.", opciones: ["aprendí", "aprendo", "aprendió", "aprendiste"], correcta: "aprendí" },
+    { oracion: "Ellos ________ (correr) cinco kilómetros esta mañana.", opciones: ["corrieron", "corren", "corrió", "corrimos"], correcta: "corrieron" },
+    { oracion: "Tú ________ (comprender) las instrucciones rápidamente.", opciones: ["comprendiste", "comprendes", "comprendió", "comprendieron"], correcta: "comprendiste" },
+    { oracion: "Nosotros ________ (abrir) la ventana porque hacía calor.", opciones: ["abrimos", "abren", "abrió", "abriste"], correcta: "abrimos" },
+    { oracion: "Carlos ________ (recibir) una carta importante ayer.", opciones: ["recibió", "recibe", "recibieron", "recibí"], correcta: "recibió" },
+    { oracion: "Yo ________ (vivir) en esa casa durante tres años.", opciones: ["viví", "vivo", "vivió", "vivieron"], correcta: "viví" },
+    { oracion: "Mis amigos ________ (asistir) al concierto el sábado.", opciones: ["asistieron", "asisten", "asistió", "asistimos"], correcta: "asistieron" },
+    { oracion: "Tú ________ (escribir) un poema hermoso.", opciones: ["escribiste", "escribes", "escribió", "escribieron"], correcta: "escribiste" },
+
+    // Verbos Irregulares con cambio vocálico (E->I, O->U)
+    { oracion: "El estudiante ________ (pedir) ayuda con la tarea.", opciones: ["pidió", "pedió", "pide", "pidieron"], correcta: "pidió" },
+    { oracion: "Ellos ________ (dormir) ocho horas anoche.", opciones: ["durmieron", "dormieron", "duermen", "durmió"], correcta: "durmieron" },
+    { oracion: "El abuelo ________ (morir) hace muchos años.", opciones: ["murió", "morió", "muere", "murieron"], correcta: "murió" },
+    { oracion: "Nosotros le ________ (servir) la comida a los invitados.", opciones: ["servimos", "sirvieron", "sirvió", "serviste"], correcta: "servimos" },
+    { oracion: "Ella ________ (preferir) quedarse en casa anoche.", opciones: ["prefirió", "preferió", "prefiere", "prefirieron"], correcta: "prefirió" },
+    { oracion: "Los chicos ________ (repetir) las palabras en voz alta.", opciones: ["repitieron", "repetieron", "repiten", "repitió"], correcta: "repitieron" },
+    { oracion: "Él ________ (seguir) las instrucciones del mapa.", opciones: ["siguió", "seguió", "sigue", "siguieron"], correcta: "siguió" },
+    { oracion: "La abuela ________ (sonreír) al ver a sus nietos.", opciones: ["sonrió", "sonroió", "sonríe", "sonrieron"], correcta: "sonrió" },
+
+    // Verbos con cambio ortográfico (-CAR, -GAR, -ZAR, -EER/-UIR)
+    { oracion: "Yo ________ (buscar) mis llaves por toda la casa.", opciones: ["busqué", "busque", "buscó", "buscaste"], correcta: "busqué" },
+    { oracion: "Yo ________ (jugar) con mi perro en el parque.", opciones: ["jugué", "juge", "jugó", "jugaste"], correcta: "jugué" },
+    { oracion: "Yo ________ (empezar) a estudiar a las cinco.", opciones: ["empecé", "empezé", "empezó", "empezaste"], correcta: "empecé" },
+    { oracion: "Yo ________ (llegar) temprano a la cita.", opciones: ["llegué", "llege", "llegó", "llegaste"], correcta: "llegué" },
+    { oracion: "Yo ________ (pagar) la cuenta de la cena.", opciones: ["pagué", "page", "pagó", "pagaste"], correcta: "pagué" },
+    { oracion: "Yo ________ (almorzar) una ensalada deliciosa.", opciones: ["almorcé", "almorzé", "almorzó", "almorzaste"], correcta: "almorcé" },
+    { oracion: "Ellos ________ (leer) el periódico esta mañana.", opciones: ["leyeron", "leerieron", "leen", "leyó"], correcta: "leyeron" },
+    { oracion: "El edificio se ________ (destruir) durante la tormenta.", opciones: ["destruyó", "destruió", "destruye", "destruyeron"], correcta: "destruyó" },
+    { oracion: "María ________ (oír) un ruido extraño en la noche.", opciones: ["oyó", "oí", "oye", "oyeron"], correcta: "oyó" },
+    { oracion: "Nosotros ________ (construir) una casa de árbol.", opciones: ["construimos", "construyeron", "construyó", "construiste"], correcta: "construimos" },
+
+    // Verbos Totalmente Irregulares
+    { oracion: "Ayer yo ________ (estar) enfermo todo el día.", opciones: ["estuve", "estaba", "estuvo", "estuviste"], correcta: "estuve" },
+    { oracion: "Tú ________ (tener) una idea genial para el proyecto.", opciones: ["tuviste", "tuvisteis", "tuvo", "tuvimos"], correcta: "tuviste" },
+    { oracion: "Nosotros ________ (poner) los libros sobre la mesa.", opciones: ["pusimos", "pusieron", "puso", "ponemos"], correcta: "pusimos" },
+    { oracion: "Ellos ________ (poder) terminar el examen a tiempo.", opciones: ["pudieron", "pueden", "pudo", "pudimos"], correcta: "pudieron" },
+    { oracion: "El presidente ________ (hacer) un discurso importante.", opciones: ["hizo", "hice", "hicieron", "hace"], correcta: "hizo" },
+    { oracion: "Yo ________ (saber) la respuesta correcta de inmediato.", opciones: ["supe", "sabía", "supo", "supieron"], correcta: "supe" },
+    { oracion: "Ellas ________ (venir) a la fiesta muy tarde.", opciones: ["vinieron", "vienen", "vino", "vinimos"], correcta: "vinieron" },
+    { oracion: "Tú me ________ (traer) un regalo de tu viaje.", opciones: ["trajiste", "traes", "trajo", "trajeron"], correcta: "trajiste" },
+    { oracion: "Los alumnos ________ (decir) la verdad a la maestra.", opciones: ["dijeron", "dicen", "dijo", "dijimos"], correcta: "dijeron" },
+    { oracion: "Yo ________ (querer) comprar las entradas pero se agotaron.", opciones: ["quise", "quiero", "quiso", "quisieron"], correcta: "quise" },
+    { oracion: "Ustedes ________ (conducir) hasta la playa el fin de semana.", opciones: ["condujeron", "conducieron", "condujo", "conducen"], correcta: "condujeron" },
+    { oracion: "La profesora ________ (traducir) la lectura al inglés.", opciones: ["tradujo", "traducio", "traduce", "tradujeron"], correcta: "tradujo" },
+    { oracion: "Ayer ________ (haber) un accidente en la autopista.", opciones: ["hubo", "había", "hubieron", "hay"], correcta: "hubo" },
+    { oracion: "Yo ________ (dar) un paseo por la tarde.", opciones: ["di", "dio", "diste", "dieron"], correcta: "di" },
+    { oracion: "Ellos nos ________ (dar) la bienvenida con un abrazo.", opciones: ["dieron", "dan", "dio", "dimos"], correcta: "dieron" },
+    { oracion: "Nosotros ________ (ver) una película de acción anoche.", opciones: ["vimos", "vemos", "vio", "vieron"], correcta: "vimos" },
+    { oracion: "Tú ________ (ver) el eclipse solar el mes pasado.", opciones: ["viste", "ves", "vio", "vieron"], correcta: "viste" },
+    { oracion: "El concierto ________ (ser) todo un éxito.", opciones: ["fue", "era", "fueron", "fui"], correcta: "fue" }
+];
+
+// --- CONFIGURACIÓN DEL JUEGO CON PHASER 3 ---
+const config = {
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    parent: 'game-container',
+    physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 0 }, debug: false }
+    },
+    scene: { preload: preload, create: create, update: update }
+};
+
+const game = new Phaser.Game(config);
+
+// VARIABLES DE ESTADO Y CONTROL
+let jugador, cursores, teclaEspacio;
+let balas, cohetesAlas, navesEnemigas, navesBonus;
+let vidas = 5;
+let puntos = 0;
+let navesDestruidasEnNivel = 0;
+let velocidadEnemigos = 40;
+let preguntaActual = null;
+let textoOracion, textoPuntos, vidasIconos = [];
+let modoBonusActivo = false;
+let temporizadorBonus = null;
+
+function preload() {
+    // GENERACIÓN GRÁFICA VECTORIAL INTERNA
+    let g = this.add.graphics();
+
+    // 1. Nave Futurista del Jugador
+    g.fillStyle(0x00ffff, 1);
+    g.fillTriangle(20, 0, 0, 40, 40, 40);
+    g.fillStyle(0xff00ff, 1);
+    g.fillRect(2, 25, 6, 15);
+    g.fillRect(32, 25, 6, 15);
+    g.fillStyle(0xffff00, 1);
+    g.fillCircle(20, 20, 5);
+    g.generateTexture('naveJugador', 40, 40);
+    g.clear();
+
+    // 2. Nave Enemiga
+    g.fillStyle(0xff3333, 1);
+    g.fillRect(5, 0, 30, 20);
+    g.fillRect(0, 5, 40, 10);
+    g.fillStyle(0xffff00, 1);
+    g.fillRect(10, 15, 5, 5);
+    g.fillRect(25, 15, 5, 5);
+    g.generateTexture('naveEnemiga', 40, 25);
+    g.clear();
+
+    // 3. Nave Bonus (Dorada)
+    g.fillStyle(0xffd700, 1);
+    g.fillCircle(20, 15, 15);
+    g.fillStyle(0x00ffff, 1);
+    g.fillCircle(20, 10, 7);
+    g.generateTexture('naveBonus', 40, 30);
+    g.clear();
+
+    // 4. Bandera de Colombia (Vidas)
+    g.fillStyle(0xfcd116, 1); g.fillRect(0, 0, 24, 8);
+    g.fillStyle(0x003893, 1); g.fillRect(0, 8, 24, 4);
+    g.fillStyle(0xce1126, 1); g.fillRect(0, 12, 24, 4);
+    g.generateTexture('banderaColombia', 24, 16);
+    g.clear();
+
+    // 5. Proyectiles
+    g.fillStyle(0x00ffff, 1); g.fillRect(0, 0, 4, 10);
+    g.generateTexture('bala', 4, 10);
+    g.clear();
+
+    g.fillStyle(0xff5500, 1); g.fillRect(0, 0, 6, 14);
+    g.generateTexture('cohete', 6, 14);
+    g.clear();
+}
+
+function create() {
+    // Teclado
+    cursores = this.input.keyboard.createCursorKeys();
+    teclaEspacio = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+
+    // Nave del Jugador
+    jugador = this.physics.add.sprite(400, 530, 'naveJugador');
+    jugador.setCollideWorldBounds(true);
+
+    // Grupos de Física
+    balas = this.physics.add.group({ defaultKey: 'bala', maxSize: 25 });
+    cohetesAlas = this.physics.add.group({ defaultKey: 'cohete', maxSize: 25 });
+    navesEnemigas = this.physics.add.group();
+    navesBonus = this.physics.add.group();
+
+    // Textos de UI
+    textoOracion = this.add.text(400, 30, '', { font: '18px Arial', fill: '#00ffff', align: 'center', wordWrap: { width: 750 } }).setOrigin(0.5);
+    textoPuntos = this.add.text(16, 565, 'Puntos: 0', { font: '18px Arial', fill: '#ffffff' });
+
+    // UI de Vidas con Banderas
+    this.add.text(580, 565, 'Vidas:', { font: '18px Arial', fill: '#ffffff' });
+    actualizarVidasUI.call(this);
+
+    // Colisiones
+    this.physics.add.overlap(balas, navesEnemigas, impactoEnemigo, null, this);
+    this.physics.add.overlap(cohetesAlas, navesEnemigas, impactoEnemigo, null, this);
+    this.physics.add.overlap(balas, navesBonus, impactoBonus, null, this);
+    this.physics.add.overlap(cohetesAlas, navesBonus, impactoBonus, null, this);
+
+    // Comenzar el juego
+    siguientePregunta.call(this);
+}
+
+function update() {
+    if (vidas <= 0) return;
+
+    // Control de Movimiento
+    if (cursores.left.isDown) {
+        jugador.setVelocityX(-320);
+    } else if (cursores.right.isDown) {
+        jugador.setVelocityX(320);
+    } else {
+        jugador.setVelocityX(0);
+    }
+
+    // Control de Disparo
+    if (Phaser.Input.Keyboard.JustDown(teclaEspacio)) {
+        disparar.call(this);
+    }
+
+    // Verificación si un enemigo sobrepasa la nave
+    navesEnemigas.children.iterate((enemigo) => {
+        if (enemigo && enemigo.y > 510) {
+            enemigo.destroy();
+            perderVida.call(this);
+        }
+    });
+}
+
+function disparar() {
+    // Bala central
+    let bala = balas.get(jugador.x, jugador.y - 20);
+    if (bala) {
+        bala.setActive(true).setVisible(true);
+        bala.body.velocity.y = -420;
+    }
+
+    // Disparo adicional en las alas si el Bonus está activo
+    if (modoBonusActivo) {
+        let coheteIzq = cohetesAlas.get(jugador.x - 18, jugador.y);
+        let coheteDer = cohetesAlas.get(jugador.x + 18, jugador.y);
+
+        if (coheteIzq && coheteDer) {
+            coheteIzq.setActive(true).setVisible(true).body.velocity.y = -420;
+            coheteDer.setActive(true).setVisible(true).body.velocity.y = -420;
+        }
+    }
+}
+
+function siguientePregunta() {
+    // Limpiar pantalla
+    navesEnemigas.clear(true, true);
+
+    // Seleccionar pregunta aleatoria del banco de 62 preguntas
+    preguntaActual = Phaser.Utils.Array.GetRandom(bancoPreguntas);
+    textoOracion.setText("Completa: " + preguntaActual.oracion);
+
+    // Incrementar número de opciones según puntos
+    let numOpciones = 2;
+    if (puntos >= 10) numOpciones = 4;
+    else if (puntos >= 5) numOpciones = 3;
+
+    let opcionesMostradas = preguntaActual.opciones.slice(0, numOpciones);
+    Phaser.Utils.Array.Shuffle(opcionesMostradas);
+
+    let espaciado = 700 / (opcionesMostradas.length + 1);
+
+    opcionesMostradas.forEach((opcion, index) => {
+        let posX = espaciado * (index + 1) + 50;
+        let nave = navesEnemigas.create(posX, 80, 'naveEnemiga');
+        nave.setVelocityY(velocidadEnemigos);
+
+        let textoOpcion = this.add.text(0, -25, opcion, { font: '16px Arial', fill: '#ffffff', backgroundColor: '#000000' }).setOrigin(0.5);
+        nave.setData('texto', textoOpcion);
+        nave.setData('respuesta', opcion);
+
+        nave.preUpdate = function () {
+            if (this.getData('texto')) {
+                this.getData('texto').setPosition(this.x, this.y - 20);
+            }
+        };
+    });
+}
+
+function impactoEnemigo(proyectil, nave) {
+    proyectil.destroy();
+    let respuesta = nave.getData('respuesta');
+
+    if (nave.getData('texto')) nave.getData('texto').destroy();
+    nave.destroy();
+
+    if (respuesta === preguntaActual.correcta) {
+        // ACIERTO
+        puntos++;
+        navesDestruidasEnNivel++;
+        textoPuntos.setText('Puntos: ' + puntos);
+
+        // Aceleración de caída cada 5 naves destruidas
+        if (navesDestruidasEnNivel >= 5) {
+            navesDestruidasEnNivel = 0;
+            velocidadEnemigos += 15;
+        }
+
+        // Evento de Bonus cada 5 puntos
+        if (puntos % 5 === 0) {
+            generarNaveBonus.call(this);
+        }
+
+        siguientePregunta.call(this);
+    } else {
+        // ERROR
+        perderVida.call(this);
+    }
+}
+
+function generarNaveBonus() {
+    let bonus = navesBonus.create(0, 120, 'naveBonus');
+    bonus.setVelocityX(160);
+
+    let textoB = this.add.text(0, -20, '¡BONUS!', { font: '12px Arial', fill: '#ffff00' }).setOrigin(0.5);
+    bonus.setData('texto', textoB);
+    bonus.preUpdate = function () {
+        if (this.getData('texto')) {
+            this.getData('texto').setPosition(this.x, this.y - 18);
+        }
+    };
+}
+
+function impactoBonus(proyectil, bonus) {
+    proyectil.destroy();
+    if (bonus.getData('texto')) bonus.getData('texto').destroy();
+    bonus.destroy();
+
+    // Activar cohetes laterales por 5 segundos
+    modoBonusActivo = true;
+    jugador.setTint(0x00ffff);
+
+    if (temporizadorBonus) temporizadorBonus.remove();
+
+    temporizadorBonus = this.time.delayedCall(5000, () => {
+        modoBonusActivo = false;
+        jugador.clearTint();
+    }, null, this);
+}
+
+function perderVida() {
+    vidas--;
+    actualizarVidasUI.call(this);
+
+    if (vidas <= 0) {
+        this.physics.pause();
+        jugador.setTint(0xff0000);
+        textoOracion.setText('¡JUEGO TERMINADO!\nPuntaje total: ' + puntos);
+    } else {
+        siguientePregunta.call(this);
+    }
+}
+
+function actualizarVidasUI() {
+    vidasIconos.forEach(icono => icono.destroy());
+    vidasIconos = [];
+
+    for (let i = 0; i < vidas; i++) {
+        let bandera = this.add.image(650 + (i * 30), 575, 'banderaColombia');
+        vidasIconos.push(bandera);
+    }
+}
+</script>
+</body>
+</html>
